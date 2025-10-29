@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Working Distance and Field of View (FoV)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .input-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .input-container label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .input-container select, .input-container input, .input-container button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 300px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .output {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .output table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .output th, .output td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .output th {
+            background-color: #f4f4f4;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        .info {
+            font-size: 14px;
+            margin-top: 10px;
+            color: #555;
+        }
+        #cameraInfo {
+            display: none; /* Hide camera info initially */
+        }
+        #cameraPrompt {
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Working Distance and Field of View (FoV)</h1>
+        <p>This tool helps calculate the working distance (WD), field of view (FoV), and mm per pixel of a camera system.</p>
+
+        <!-- Input Form -->
+        <div class="input-container">
+            <p id="cameraPrompt">Please select a camera to proceed:</p>
+
+            <!-- Camera selection -->
+            <select id="cameraName">
+                <option value="" disabled selected>Select Camera</option>
+                <option value="IS2000_VGA">IS2000 VGA</option>
+                <option value="IS2000_SVGA">IS2000 SVGA</option>
+                <option value="IS2001">IS2001</option>
+                <option value="IS7500">IS7500/7800</option>
+                <option value="IS7501">IS7501/7801</option>
+                <option value="IS7802">IS7802</option>
+                <option value="IS7802P">IS7802 P</option>
+                <option value="IS7902P">IS7902 P</option>
+                <option value="IS7905">IS7905</option> 
+                <option value="IS3801">IS3801</option>
+                <option value="IS2802">IS2802</option>
+                <option value="IS2801">IS2801</option>
+                <option value="IS2800">IS2800</option>
+                <option value="CAM-CIC-1300-60-G">CAM-CIC-1300-60-G</option>
+                <option value="CAM-CIC-5000-20-G">CAM-CIC-5000-20-G</option>
+                <option value="CAM-CIC-5000R-14-G">CAM-CIC-5000R-14-G</option>
+		<option value="CIC-A02-MG-60-G">CIC-A02-MG-60-G</option>
+		<option value="CIC-A05-MG-24-G">CIC-A05-MG-24-G</option>
+		<option value="IS8900M">IS8900M</option>
+		<option value="IS8902M">IS8902M</option>
+		<option value="IS8905M">IS8905M</option>
+		<option value="IS8912M">IS8912M</option>
+		<option value="IS3808M">IS3808M</option>
+
+            </select>
+
+            <!-- Display resolution and sensor pixel size as labels -->
+            <div id="cameraInfo">
+                <label id="resolutionLabel">Resolution: </label><span id="resolutionValue">-</span>
+                <br>
+                <label id="sensorPixelSizeLabel">Sensor Pixel Size: </label><span id="sensorPixelSizeValue">-</span>
+                <br>
+            </div>
+
+            <br>
+
+            <label for="lensType">Lens Type:</label>
+            <select id="lensType">
+                <option value="standard">Standard Lens</option>
+                <option value="telecentric">Telecentric Lens</option>
+            </select>
+
+            <!-- Telecentric Lens inputs -->
+            <div id="telecentricInputs" style="display:none;">
+                <label for="magnification">Magnification:</label>
+                <input type="number" id="magnification" value="1" step="0.1">
+            </div>
+
+            <!-- Standard Lens inputs -->
+            <div id="standardInputs" style="display:block;">
+                <label for="focalLength">Focal Length (mm):</label>
+                <input type="number" id="focalLength" value="50">
+                <br>
+                <label for="workingDistance">Working Distance (mm):</label>
+                <input type="number" id="workingDistance" value="200">
+            </div>
+
+            <br>
+
+            <div class="button-container">
+                <button onclick="calculate()" disabled id="calculateBtn">Calculate</button>
+            </div>
+        </div>
+
+        <div class="output">
+            <h3>Results:</h3>
+            <table id="resultTable" style="display:none;">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sensor Size (Width x Height)</td>
+                        <td id="sensorSizeValue">-</td>
+                    </tr>
+                    <tr>
+                        <td>Field of View (Width x Height)</td>
+                        <td id="fovValue">-</td>
+                    </tr>
+                    <tr>
+                        <td>Working Distance</td>
+                        <td id="workingDistanceValue">-</td>
+                    </tr>
+                    <tr>
+                        <td>mm per Pixel</td>
+                        <td id="mmPerPixelValue">-</td>
+                    </tr>
+                    <tr>
+                        <td>Magnification</td>
+                        <td id="magnificationValue">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="info">
+            <p><i>* Please note that some fields are auto-filled based on your camera selection.</i></p>
+        </div>
+    </div>
+
+    <script>
+        // Camera configuration based on camera name
+        const cameraConfig = {
+            "IS2000_VGA": {
+                resolution: "640x480",
+                sensorPixelSize: 3.75
+            },
+            "IS2000_SVGA": {
+                resolution: "800x600",
+                sensorPixelSize: 3.75
+            },
+            "IS2001": {
+                resolution: "1280x960",
+                sensorPixelSize: 3.75
+            },
+            "IS7500": {
+                resolution: "800x600",
+                sensorPixelSize: 4.5
+            },
+            "IS7501": {
+                resolution: "1280x1024",
+                sensorPixelSize: 4.5
+            },
+            "IS7802": {
+                resolution: "1600x1200",
+                sensorPixelSize: 4.5
+            },
+            "IS7802P": {
+                resolution: "1600x1200",
+                sensorPixelSize: 3.45
+            },
+            "IS7902P": {
+                resolution: "1920x1200",
+                sensorPixelSize: 3.45
+            },
+            "IS7905": {
+                resolution: "2448x2048",
+                sensorPixelSize: 3.45
+            },
+            "IS3801": {
+                resolution: "1440x1080",
+                sensorPixelSize: 3.45
+            }, 
+            "IS2802": {
+                resolution: "1920x1080",
+                sensorPixelSize: 2.8
+            },
+             "IS2801": {
+                resolution: "1440x1080",
+                sensorPixelSize: 2.8
+            },
+             "IS2800": {
+                resolution: "720x540",
+                sensorPixelSize: 2.8
+            },
+            "CAM-CIC-1300-60-G": {
+                resolution: "1280x1024",
+                sensorPixelSize: 5.3
+            },
+            "CAM-CIC-2000-60-G": {
+                resolution: "1600x1200",
+                sensorPixelSize: 4.5
+            },
+            "CAM-CIC-5000-20-G": {
+                resolution: "2448x2048",
+                sensorPixelSize: 3.45
+            },
+	    "CIC-A02-MG-60-G": {
+                resolution: "1624x1260",
+                sensorPixelSize: 4.5
+            },
+	    "CIC-A05-MG-24-G": {
+                resolution: "2448x2048",
+                sensorPixelSize: 3.45
+            },
+	    "IS8900M": {
+                resolution: "800x600",
+                sensorPixelSize: 2.74
+            },
+	    "IS8902M": {
+                resolution: "1920x1200",
+                sensorPixelSize: 2.74
+            },
+	    "IS8905M": {
+                resolution: "2448x2048",
+                sensorPixelSize: 2.74
+            },
+	    "IS8912M": {
+                resolution: "4096x3000",
+                sensorPixelSize: 2.74
+            },
+	    "IS3808M": {
+                resolution: "2840x2840",
+                sensorPixelSize: 2.74
+            },
+            "CAM-CIC-5000R-14-G": {
+                resolution: "2592x1944",
+                sensorPixelSize: 2.2
+            }
+           };
+
+        // Update inputs when the camera is selected
+        document.getElementById("cameraName").addEventListener("change", function() {
+            const camera = this.value;
+
+            if (!camera) {
+                return;
+            }
+
+            // Display the resolution and sensor size
+            const config = cameraConfig[camera];
+            document.getElementById("resolutionValue").textContent = config.resolution;
+            document.getElementById("sensorPixelSizeValue").textContent = `${config.sensorPixelSize} microns`;
+
+            // Show camera info and enable the calculate button
+            document.getElementById("cameraInfo").style.display = "block";
+            document.getElementById("calculateBtn").disabled = false;
+            document.getElementById("cameraPrompt").style.display = "none"; // Hide prompt once camera is selected
+        });
+
+        // Update input visibility based on lens type selection
+        document.getElementById("lensType").addEventListener("change", function() {
+            const lensType = this.value;
+            if (lensType === "telecentric") {
+                document.getElementById("telecentricInputs").style.display = "block";
+                document.getElementById("standardInputs").style.display = "none";
+            } else {
+                document.getElementById("telecentricInputs").style.display = "none";
+                document.getElementById("standardInputs").style.display = "block";
+            }
+        });
+
+        // Main function to handle the calculation based on lens type
+        function calculate() {
+            const lensType = document.getElementById("lensType").value;
+
+            // Call the appropriate calculation function based on lens type
+            if (lensType === "telecentric") {
+                calculateTelecentric();
+            } else {
+                calculateStandard();
+            }
+        }
+
+        // Standard Lens Calculation
+        function calculateStandard() {
+            const sensorPixelSize = parseFloat(document.getElementById("sensorPixelSizeValue").textContent); // in microns
+            const resolution = document.getElementById("resolutionValue").textContent.split('x');
+            const resolutionWidth = parseInt(resolution[0]);
+            const resolutionHeight = parseInt(resolution[1]);
+            const focalLength = parseFloat(document.getElementById("focalLength").value);
+            const workingDistance = parseFloat(document.getElementById("workingDistance").value);
+
+            // Convert sensor pixel size from microns to mm
+            const sensorPixelSizeInMm = sensorPixelSize / 1000;
+
+            // Calculate Sensor Size (in mm)
+            const sensorWidth = resolutionWidth * sensorPixelSizeInMm; // in mm
+            const sensorHeight = resolutionHeight * sensorPixelSizeInMm; // in mm
+
+            // Calculate Magnification for Standard lens
+            const magnification = focalLength / workingDistance;
+
+            // Calculate Field of View (FoV) for Standard lens (FoV = Sensor Size / Magnification)
+            const fieldOfViewWidth = sensorWidth / magnification;
+            const fieldOfViewHeight = sensorHeight / magnification;
+
+            // Calculate mm per pixel for Standard lens
+            const mmPerPixel = fieldOfViewWidth / resolutionWidth;
+
+            // Display the results in the table
+            document.getElementById("sensorSizeValue").textContent = `${sensorWidth.toFixed(2)} mm x ${sensorHeight.toFixed(2)} mm`;
+            document.getElementById("fovValue").textContent = `${fieldOfViewWidth.toFixed(2)} mm x ${fieldOfViewHeight.toFixed(2)} mm`;
+            document.getElementById("workingDistanceValue").textContent = workingDistance.toFixed(2) + " mm";
+            document.getElementById("mmPerPixelValue").textContent = mmPerPixel.toFixed(4);
+            document.getElementById("magnificationValue").textContent = magnification.toFixed(2); // Display magnification
+
+            // Show the results table
+            document.getElementById("resultTable").style.display = "table";
+        }
+
+        // Telecentric Lens Calculation
+        function calculateTelecentric() {
+            const sensorPixelSize = parseFloat(document.getElementById("sensorPixelSizeValue").textContent); // in microns
+            const resolution = document.getElementById("resolutionValue").textContent.split('x');
+            const resolutionWidth = parseInt(resolution[0]);
+            const resolutionHeight = parseInt(resolution[1]);
+            const magnification = parseFloat(document.getElementById("magnification").value); // User input
+
+            // Convert sensor pixel size from microns to mm
+            const sensorPixelSizeInMm = sensorPixelSize / 1000;
+
+            // Calculate Sensor Size (in mm)
+            const sensorWidth = resolutionWidth * sensorPixelSizeInMm; // in mm
+            const sensorHeight = resolutionHeight * sensorPixelSizeInMm; // in mm
+
+            // Calculate mm per pixel for Telecentric lens
+            let mmPerPixel = sensorPixelSizeInMm / magnification;
+
+            // FoV for telecentric lens is based on magnification
+            const fieldOfViewWidth = sensorWidth / magnification;
+            const fieldOfViewHeight = sensorHeight / magnification;
+
+            // Working distance is fixed for Telecentric lens (you can adjust this value if needed)
+            const workingDistance = 0; // Or set to a fixed value
+
+            // Display the results in the table
+            document.getElementById("sensorSizeValue").textContent = `${sensorWidth.toFixed(2)} mm x ${sensorHeight.toFixed(2)} mm`;
+            document.getElementById("fovValue").textContent = `${fieldOfViewWidth.toFixed(2)} mm x ${fieldOfViewHeight.toFixed(2)} mm`;
+            document.getElementById("workingDistanceValue").textContent = "Fixed for Telecentric Lens"; // You can specify fixed value if needed
+            document.getElementById("mmPerPixelValue").textContent = mmPerPixel.toFixed(4);
+             document.getElementById("magnificationValue").textContent = magnification.toFixed(2); // Display magnification
+
+            // Show the results table
+            document.getElementById("resultTable").style.display = "table";
+        }
+    </script>
+</body>
+</html>
